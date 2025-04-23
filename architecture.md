@@ -70,6 +70,7 @@ openwebui-discord/
 ### 3.1. Configuration System
 
 The configuration system will support multiple sources with the following priority:
+
 1. Command-line flags
 2. Environment variables
 3. Configuration file (YAML)
@@ -82,22 +83,22 @@ type Config struct {
         AuthorizedChannels []string `yaml:"authorized_channels" env:"DISCORD_AUTHORIZED_CHANNELS"`
         CommandPrefix   string   `yaml:"command_prefix" env:"DISCORD_COMMAND_PREFIX"`
     } `yaml:"discord"`
-    
+
     OpenWebUI struct {
         Endpoint  string `yaml:"endpoint" env:"OPENWEBUI_ENDPOINT"`
         APIKey    string `yaml:"api_key" env:"OPENWEBUI_API_KEY"`
         Model     string `yaml:"model" env:"OPENWEBUI_MODEL"`
         Timeout   int    `yaml:"timeout" env:"OPENWEBUI_TIMEOUT"`
     } `yaml:"openwebui"`
-    
+
     Context struct {
         MaxAgeMinutes int `yaml:"max_age_minutes" env:"CONTEXT_MAX_AGE_MINUTES"`
     } `yaml:"context"`
-    
+
     RateLimit struct {
         RequestsPerMinute int `yaml:"requests_per_minute" env:"RATE_LIMIT_REQUESTS_PER_MINUTE"`
     } `yaml:"rate_limit"`
-    
+
     Logging struct {
         Level  string `yaml:"level" env:"LOG_LEVEL"`
         Format string `yaml:"format" env:"LOG_FORMAT"`
@@ -109,6 +110,7 @@ type Config struct {
 ### 3.2. Discord Client
 
 The Discord client will handle:
+
 - Connection to Discord API
 - Message event handling
 - Command parsing
@@ -122,7 +124,7 @@ sequenceDiagram
     participant Handler as Message Handler
     participant Context as Context Manager
     participant OpenWebUI as OpenWebUI Client
-    
+
     User->>Bot: Mention or Prefix Command
     Bot->>Handler: Process Message Event
     Handler->>Handler: Check Authorization
@@ -137,6 +139,7 @@ sequenceDiagram
 ### 3.3. OpenWebUI Client
 
 The OpenWebUI client will:
+
 - Handle API communication
 - Format requests according to OpenWebUI API
 - Process responses
@@ -145,6 +148,7 @@ The OpenWebUI client will:
 ### 3.4. Context Manager
 
 The context manager will:
+
 - Maintain conversation history per channel
 - Enforce time-based context limits (~20 minutes)
 - Optimize memory usage by pruning old messages
@@ -167,6 +171,7 @@ type ChannelContext struct {
 ### 3.5. Rate Limiter
 
 The rate limiter will:
+
 - Enforce rate limits for Discord API
 - Enforce rate limits for OpenWebUI API
 - Implement token bucket algorithm
@@ -175,6 +180,7 @@ The rate limiter will:
 ### 3.6. Logger
 
 The logger will provide:
+
 - Structured logging (JSON format)
 - Configurable verbosity levels
 - File and console output
@@ -197,14 +203,17 @@ graph TD
 ### 4.1. Error Categories
 
 1. **Transient Errors**: Network issues, temporary API unavailability
+
    - Implement exponential backoff retry
    - Log warnings
 
 2. **Configuration Errors**: Missing credentials, invalid settings
+
    - Log fatal errors
    - Exit with descriptive message
 
 3. **API Errors**: Rate limiting, authentication failures
+
    - Log errors
    - Implement appropriate recovery strategies
 
@@ -221,7 +230,7 @@ sequenceDiagram
     participant Discord as Discord Client
     participant OpenWebUI as OpenWebUI Client
     participant Context as Context Manager
-    
+
     OS->>Main: SIGTERM/SIGINT
     Main->>Discord: Initiate Shutdown
     Main->>OpenWebUI: Close Connections
@@ -318,15 +327,18 @@ graph TD
 ## 9. Security Considerations
 
 1. **Credential Management**:
+
    - Store API keys securely
    - Support environment variables for sensitive data
    - Never log sensitive information
 
 2. **Authorization**:
+
    - Validate Discord users against allowed lists
    - Implement channel/server restrictions
 
 3. **Rate Limiting**:
+
    - Protect against abuse
    - Implement fair usage policies
 

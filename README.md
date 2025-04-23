@@ -1,6 +1,6 @@
 # OpenWebUI Discord Bot
 
-A production-grade Golang daemon that bridges Discord and OpenWebUI, allowing users to interact with OpenWebUI through Discord.
+Bridges Discord and OpenWebUI, allowing users to interact with OpenWebUI through Discord.
 
 ## Features
 
@@ -29,28 +29,25 @@ A production-grade Golang daemon that bridges Discord and OpenWebUI, allowing us
 ### From Source
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/justmiles/openwebui-discord.git
    cd openwebui-discord
    ```
 
 2. Build the application:
+
    ```
    go build -o openwebui-discord ./cmd/openwebui-discord
    ```
 
-3. Generate an example configuration:
-   ```
-   ./openwebui-discord --generate-config
-   ```
+3. Edit the configuration file:
 
-4. Edit the configuration file:
    ```
    cp configs/config.yaml.example configs/config.yaml
-   # Edit configs/config.yaml with your preferred editor
    ```
 
-5. Run the application:
+4. Run the application:
    ```
    ./openwebui-discord
    ```
@@ -79,7 +76,7 @@ OPENWEBUI_DISCORD_OPENWEBUI_API_KEY=your-openwebui-api-key
 
 ### Command-Line Flags
 
-Run `./openwebui-discord --help` to see all available command-line flags.
+Run `openwebui-discord --help` to see all available command-line flags.
 
 ## Discord Bot Setup
 
@@ -88,10 +85,12 @@ Run `./openwebui-discord --help` to see all available command-line flags.
 3. Enable the necessary intents (at minimum, you need the Message Content intent)
 4. Copy the bot token and add it to your configuration
 5. Invite the bot to your server using the OAuth2 URL generator with the following scopes:
+
    - bot
    - applications.commands
-   
+
    And the following permissions:
+
    - Read Messages/View Channels
    - Send Messages
    - Read Message History

@@ -174,7 +174,7 @@ func (c *Client) WithRetry(ctx context.Context, messages []Message, maxRetries i
 
 		// Check if we should retry based on the error
 		if !isRetryableError(err) {
-			return "", fmt.Errorf("non-retryable error: %w", err)
+			return "", fmt.Errorf("non-retryable error: %v", err)
 		}
 	}
 
