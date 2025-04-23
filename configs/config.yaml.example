@@ -1,0 +1,56 @@
+# OpenWebUI Discord Bot Configuration
+
+# Discord configuration
+discord:
+  # Discord bot token (required)
+  token: "your-discord-token"
+  
+  # List of authorized guild IDs (optional)
+  # If empty, all guilds are allowed
+  authorized_guilds:
+    - "guild-id-1"
+    - "guild-id-2"
+  
+  # List of authorized channel IDs (optional)
+  # If empty, all channels in authorized guilds are allowed
+  authorized_channels:
+    - "channel-id-1"
+    - "channel-id-2"
+  
+  # Command prefix for bot commands (default: "!")
+  command_prefix: "!"
+
+# OpenWebUI configuration
+openwebui:
+  # OpenWebUI API endpoint (required)
+  endpoint: "http://localhost:8080"
+  
+  # OpenWebUI API key (required)
+  api_key: "your-openwebui-api-key"
+  
+  # Model to use for completions (default: "default")
+  model: "gpt-3.5-turbo"
+  
+  # API timeout in seconds (default: 60)
+  timeout: 60
+
+# Conversation context configuration
+context:
+  # Maximum age of conversation context in minutes (default: 20)
+  max_age_minutes: 20
+
+# Rate limiting configuration
+rate_limit:
+  # Maximum requests per minute (default: 30)
+  requests_per_minute: 30
+
+# Logging configuration
+logging:
+  # Logging level: debug, info, warn, error (default: info)
+  level: "info"
+  
+  # Logging format: json, text (default: json)
+  format: "json"
+  
+  # Log file path (optional, default: stdout)
+  file: "logs/openwebui-discord.log"
