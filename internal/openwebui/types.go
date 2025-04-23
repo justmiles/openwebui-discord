@@ -9,6 +9,7 @@ type Message struct {
 // ChatCompletionRequest represents a request to the OpenWebUI chat completion API
 type ChatCompletionRequest struct {
 	Model    string    `json:"model"`
+	ToolIDs  []string  `json:"tool_ids"`
 	Messages []Message `json:"messages"`
 }
 

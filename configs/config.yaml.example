@@ -33,6 +33,11 @@ openwebui:
   
   # API timeout in seconds (default: 60)
   timeout: 60
+  
+  # Tool IDs for function calling capabilities (optional)
+  tool_ids:
+    - "gettime"
+    - "weather"
 
 # Conversation context configuration
 context:

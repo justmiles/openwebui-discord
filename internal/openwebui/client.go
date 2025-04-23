@@ -20,17 +20,19 @@ type Client struct {
 	endpoint    string
 	apiKey      string
 	model       string
+	toolIDs     []string
 	timeout     time.Duration
 	client      *http.Client
 	rateLimiter *ratelimit.Limiter
 }
 
 // NewClient creates a new OpenWebUI API client
-func NewClient(endpoint, apiKey, model string, timeoutSeconds, requestsPerMinute int) *Client {
+func NewClient(endpoint, apiKey, model string, toolIDs []string, timeoutSeconds, requestsPerMinute int) *Client {
 	return &Client{
 		endpoint:    endpoint,
 		apiKey:      apiKey,
 		model:       model,
+		toolIDs:     toolIDs,
 		timeout:     time.Duration(timeoutSeconds) * time.Second,
 		client:      &http.Client{Timeout: time.Duration(timeoutSeconds) * time.Second},
 		rateLimiter: ratelimit.NewLimiter(requestsPerMinute),
@@ -45,6 +47,7 @@ func (c *Client) ChatCompletion(ctx context.Context, messages []Message) (*ChatC
 	// Create request
 	reqBody := ChatCompletionRequest{
 		Model:    c.model,
+		ToolIDs:  c.toolIDs,
 		Messages: messages,
 	}
 
@@ -58,7 +61,7 @@ func (c *Client) ChatCompletion(ctx context.Context, messages []Message) (*ChatC
 	defer cancel()
 
 	// Create HTTP request
-	url := fmt.Sprintf("%s/v1/chat/completions", c.endpoint)
+	url := fmt.Sprintf("%s/api/chat/completions", c.endpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)

@@ -21,10 +21,11 @@ type Config struct {
 	} `mapstructure:"discord" yaml:"discord"`
 
 	OpenWebUI struct {
-		Endpoint string `mapstructure:"endpoint" yaml:"endpoint"`
-		APIKey   string `mapstructure:"api_key" yaml:"api_key"`
-		Model    string `mapstructure:"model" yaml:"model"`
-		Timeout  int    `mapstructure:"timeout" yaml:"timeout"`
+		Endpoint string   `mapstructure:"endpoint" yaml:"endpoint"`
+		APIKey   string   `mapstructure:"api_key" yaml:"api_key"`
+		Model    string   `mapstructure:"model" yaml:"model"`
+		Timeout  int      `mapstructure:"timeout" yaml:"timeout"`
+		ToolIDs  []string `mapstructure:"tool_ids" yaml:"tool_ids"`
 	} `mapstructure:"openwebui" yaml:"openwebui"`
 
 	Context struct {
@@ -53,6 +54,7 @@ func DefaultConfig() *Config {
 	cfg.OpenWebUI.Endpoint = "http://localhost:8080"
 	cfg.OpenWebUI.Model = "default"
 	cfg.OpenWebUI.Timeout = 60
+	cfg.OpenWebUI.ToolIDs = []string{}
 	
 	// Context defaults
 	cfg.Context.MaxAgeMinutes = 20
@@ -86,6 +88,7 @@ func Load(configPath string) (*Config, error) {
 	pflag.String("openwebui.api_key", "", "OpenWebUI API key")
 	pflag.String("openwebui.model", cfg.OpenWebUI.Model, "OpenWebUI model to use")
 	pflag.Int("openwebui.timeout", cfg.OpenWebUI.Timeout, "OpenWebUI API timeout in seconds")
+	pflag.StringSlice("openwebui.tool_ids", cfg.OpenWebUI.ToolIDs, "OpenWebUI tool IDs for function calling")
 	pflag.Int("context.max_age_minutes", cfg.Context.MaxAgeMinutes, "Maximum age of conversation context in minutes")
 	pflag.Int("rate_limit.requests_per_minute", cfg.RateLimit.RequestsPerMinute, "Maximum requests per minute")
 	pflag.String("logging.level", cfg.Logging.Level, "Logging level (debug, info, warn, error)")
