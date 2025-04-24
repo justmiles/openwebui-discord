@@ -58,8 +58,8 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 		zap.Int("content_length", len(content)),
 	)
 
-	// Add user message to context
-	h.contextManager.AddMessage(m.ChannelID, "user", content)
+	// Add user message to context with username
+	h.contextManager.AddMessage(m.ChannelID, "user", content, m.Author.Username)
 
 	// Prepare messages for OpenWebUI
 	messages := h.prepareMessages(m.ChannelID)
@@ -79,8 +79,8 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 		return
 	}
 
-	// Add assistant response to context
-	h.contextManager.AddMessage(m.ChannelID, "assistant", response)
+	// Add assistant response to context (no username for assistant)
+	h.contextManager.AddMessage(m.ChannelID, "assistant", response, "")
 
 	// Send response to Discord
 	_, err = h.discordClient.SendMessage(m.ChannelID, response)

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 type Message struct {
 	Role      string    `json:"role"`
 	Content   string    `json:"content"`
+	Name      string    `json:"name"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -24,15 +26,15 @@ type ChannelContext struct {
 
 // Manager handles conversation contexts for multiple channels
 type Manager struct {
-	contexts     map[string]*ChannelContext
+	contexts      map[string]*ChannelContext
 	maxAgeMinutes int
-	mutex        sync.RWMutex
+	mutex         sync.RWMutex
 }
 
 // NewManager creates a new context manager
 func NewManager(maxAgeMinutes int) *Manager {
 	manager := &Manager{
-		contexts:     make(map[string]*ChannelContext),
+		contexts:      make(map[string]*ChannelContext),
 		maxAgeMinutes: maxAgeMinutes,
 	}
 
@@ -43,7 +45,7 @@ func NewManager(maxAgeMinutes int) *Manager {
 }
 
 // AddMessage adds a message to a channel's context
-func (m *Manager) AddMessage(channelID, role, content string) {
+func (m *Manager) AddMessage(channelID, role, content, username string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -61,6 +63,7 @@ func (m *Manager) AddMessage(channelID, role, content string) {
 	message := Message{
 		Role:      role,
 		Content:   content,
+		Name:      username,
 		Timestamp: time.Now(),
 	}
 	ctx.Messages = append(ctx.Messages, message)
@@ -188,9 +191,16 @@ func (m *Manager) FormatForAPI(channelID string) []map[string]string {
 	formatted := make([]map[string]string, len(messages))
 
 	for i, msg := range messages {
+		content := msg.Content
+		// Include username for user messages if available
+		if msg.Role == "user" && msg.Name != "" {
+			content = fmt.Sprintf("%s: %s", msg.Name, content)
+		}
+
 		formatted[i] = map[string]string{
 			"role":    msg.Role,
-			"content": msg.Content,
+			"name":    msg.Name,
+			"content": content,
 		}
 	}
 
