@@ -109,8 +109,12 @@ func (c *Client) messageHandler(s *discordgo.Session, m *discordgo.MessageCreate
 
 	isCommand := strings.HasPrefix(m.Content, c.commandPrefix)
 
+	// Always process the message, but log if it's not a direct mention or command
 	if !isMention && !isCommand {
-		return
+		logger.Debug("Processing message without direct mention or command",
+			zap.String("channel_id", m.ChannelID),
+			zap.String("user_id", m.Author.ID),
+		)
 	}
 
 	// Apply rate limiting
@@ -243,4 +247,9 @@ func splitMessage(message string, maxLength int) []string {
 // GetSession returns the underlying Discord session
 func (c *Client) GetSession() *discordgo.Session {
 	return c.session
+}
+
+// GetCommandPrefix returns the command prefix
+func (c *Client) GetCommandPrefix() string {
+	return c.commandPrefix
 }

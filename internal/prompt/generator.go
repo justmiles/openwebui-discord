@@ -11,6 +11,7 @@ type ActionType string
 const (
 	ActionStatus    ActionType = "status"
 	ActionReact     ActionType = "react"
+	ActionSilence   ActionType = "silence"
 	ActionFormat    ActionType = "format"
 	ActionReactions ActionType = "reactions"
 	ActionDelete    ActionType = "delete"
@@ -42,6 +43,16 @@ func GetActionDescriptions() []ActionDescription {
 			},
 			Limitations:   "Status changes may not be immediately visible to all users due to Discord's caching.",
 			BestPractices: "Keep status messages concise and relevant to the current conversation or bot's purpose.",
+		},
+		{
+			Type:        ActionSilence,
+			Description: "Not all messages are for the bot. If it is not appropriate to respond, include this action.",
+			Parameters:  "boolean",
+			Examples: []string{
+				"[ACTION:silence|true]",
+			},
+			Limitations:   "None. This should be used generously.",
+			BestPractices: "Unless addressed directly or something bot can help please use this to stay silent.",
 		},
 		{
 			Type:        ActionReact,

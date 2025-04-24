@@ -206,3 +206,19 @@ func (m *Manager) FormatForAPI(channelID string) []map[string]string {
 
 	return formatted
 }
+
+// WasRecentlyMentionedOrCommanded checks if the bot was recently mentioned or commanded in a channel
+// within the specified time window (in minutes)
+func (m *Manager) WasRecentlyMentionedOrCommanded(channelID string, windowMinutes int) bool {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	ctx, exists := m.contexts[channelID]
+	if !exists {
+		return false
+	}
+
+	// Check if the channel was active within the time window
+	cutoffTime := time.Now().Add(-time.Duration(windowMinutes) * time.Minute)
+	return ctx.LastActive.After(cutoffTime)
+}

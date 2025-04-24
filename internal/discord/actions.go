@@ -18,6 +18,7 @@ type ActionType = prompt.ActionType
 const (
 	ActionStatus    = prompt.ActionStatus
 	ActionReact     = prompt.ActionReact
+	ActionSilence   = prompt.ActionSilence
 	ActionFormat    = prompt.ActionFormat
 	ActionReactions = prompt.ActionReactions
 	ActionDelete    = prompt.ActionDelete
@@ -82,6 +83,10 @@ func ExecuteActions(s *discordgo.Session, channelID string, messageID string, ac
 				logger.Warn("Failed to add reaction via action", zap.Error(err), zap.String("emoji", action.Parameters), zap.String("channel_id", channelID), zap.String("message_id", messageID))
 			}
 
+		case ActionSilence:
+			// This is handled during message sending in handler.go
+			logger.Debug("Silence action engaged - LLM decided not to respond to this message", zap.String("params", action.Parameters))
+
 		case ActionFormat:
 			// This is handled during message sending in handler.go
 			// The format action is parsed and applied to the message content
@@ -96,7 +101,7 @@ func ExecuteActions(s *discordgo.Session, channelID string, messageID string, ac
 				if emoji == "" {
 					continue
 				}
-				
+
 				err := s.MessageReactionAdd(channelID, messageID, emoji)
 				if err != nil {
 					logger.Warn("Failed to add reaction in sequence", zap.Error(err), zap.String("emoji", emoji))
@@ -114,7 +119,7 @@ func ExecuteActions(s *discordgo.Session, channelID string, messageID string, ac
 					logger.Warn("Failed to fetch messages for delete action", zap.Error(err))
 					break
 				}
-				
+
 				// Find the most recent message from the bot
 				for _, msg := range messages {
 					if msg.Author.ID == s.State.User.ID && msg.ID != messageID {
@@ -143,16 +148,16 @@ func ExecuteActions(s *discordgo.Session, channelID string, messageID string, ac
 				logger.Warn("Invalid file action format", zap.String("params", action.Parameters))
 				break
 			}
-			
+
 			filename := strings.TrimSpace(parts[0])
 			content := parts[1]
-			
+
 			reader := strings.NewReader(content)
 			_, err := s.ChannelFileSend(channelID, filename, reader)
 			if err != nil {
 				logger.Warn("Failed to upload file", zap.Error(err), zap.String("filename", filename))
 			}
-			
+
 		default:
 			logger.Warn("Unknown action type received", zap.String("type", string(action.Type)))
 		}

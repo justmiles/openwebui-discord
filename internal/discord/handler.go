@@ -46,9 +46,29 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 		return
 	}
 
+	// Check if this is a direct mention or command
+	isMention := false
+	for _, mention := range m.Mentions {
+		if mention.ID == s.State.User.ID {
+			isMention = true
+			break
+		}
+	}
+	isCommand := strings.HasPrefix(m.Content, h.discordClient.GetCommandPrefix())
+
+	// Check if the bot was recently mentioned or commanded (within ~20 minutes)
+	wasRecentlyActive := h.contextManager.WasRecentlyMentionedOrCommanded(m.ChannelID, 20)
+
+	// Send the response if it's a direct mention/command, was recently active, or if the response seems appropriate
+	if !isMention && !isCommand && !wasRecentlyActive {
+		return
+	}
+
 	// Set typing indicator
-	if err := h.discordClient.SetTyping(m.ChannelID); err != nil {
-		logger.Warn("Failed to set typing indicator", zap.Error(err))
+	if isMention || isCommand {
+		if err := h.discordClient.SetTyping(m.ChannelID); err != nil {
+			logger.Warn("Failed to set typing indicator", zap.Error(err))
+		}
 	}
 
 	// Log the incoming message
@@ -91,7 +111,20 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 	// Check for format action
 	var formattedResponse string = cleanResponse
 	var shouldPin bool = false
-	
+
+	// set to an empty response if the Silence action is in use.
+	hasSilenceAction := false
+	for _, action := range actions {
+		if action.Type == ActionSilence {
+			hasSilenceAction = true
+			break
+		}
+	}
+
+	if hasSilenceAction {
+		formattedResponse = ""
+	}
+
 	for _, action := range actions {
 		if action.Type == ActionFormat {
 			// Parse format action: format|type:language|content
@@ -99,7 +132,7 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 			if len(parts) >= 2 {
 				formatType := parts[0]
 				formatContent := parts[1]
-				
+
 				switch formatType {
 				case "code":
 					// Format as code block
@@ -121,23 +154,32 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 					}
 					formattedResponse = strings.Join(quotedLines, "\n")
 				}
-				
+
 				logger.Debug("Applied formatting", zap.String("type", formatType))
 			}
 		} else if action.Type == ActionPin {
 			shouldPin = true
 		}
 	}
-	
-	// Send response to Discord
-	sentMsg, err := h.discordClient.SendMessage(m.ChannelID, formattedResponse)
-	if err != nil {
-		logger.Error("Failed to send response to Discord",
-			zap.Error(err),
+
+	// Only send a response if there's actual content to send
+	var sentMsg string
+	if strings.TrimSpace(formattedResponse) != "" {
+		// Send the response if it's a direct mention/command, was recently active, or if the response seems appropriate
+		sentMsg, err = h.discordClient.SendMessage(m.ChannelID, formattedResponse)
+		if err != nil {
+			logger.Error("Failed to send response to Discord",
+				zap.Error(err),
+				zap.String("channel_id", m.ChannelID),
+			)
+		}
+	} else {
+		// Log that there's no response content
+		logger.Info("No response content to send",
 			zap.String("channel_id", m.ChannelID),
 		)
 	}
-	
+
 	// Handle pin action if needed
 	if shouldPin && sentMsg != "" {
 		err := s.ChannelMessagePin(m.ChannelID, sentMsg)
