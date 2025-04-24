@@ -14,14 +14,14 @@ import (
 
 // Client represents a Discord client
 type Client struct {
-	session        *discordgo.Session
-	token          string
-	commandPrefix  string
-	authorizedGuilds  []string
+	session            *discordgo.Session
+	token              string
+	commandPrefix      string
+	authorizedGuilds   []string
 	authorizedChannels []string
-	rateLimiter    *ratelimit.Limiter
-	handlers       []Handler
-	handlersMutex  sync.RWMutex
+	rateLimiter        *ratelimit.Limiter
+	handlers           []Handler
+	handlersMutex      sync.RWMutex
 }
 
 // Handler is an interface for message handlers
@@ -38,13 +38,13 @@ func NewClient(token, commandPrefix string, authorizedGuilds, authorizedChannels
 	}
 
 	client := &Client{
-		session:        session,
-		token:          token,
-		commandPrefix:  commandPrefix,
-		authorizedGuilds:  authorizedGuilds,
+		session:            session,
+		token:              token,
+		commandPrefix:      commandPrefix,
+		authorizedGuilds:   authorizedGuilds,
 		authorizedChannels: authorizedChannels,
-		rateLimiter:    ratelimit.NewLimiter(requestsPerMinute),
-		handlers:       make([]Handler, 0),
+		rateLimiter:        ratelimit.NewLimiter(requestsPerMinute),
+		handlers:           make([]Handler, 0),
 	}
 
 	// Add message handler

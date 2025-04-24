@@ -56,6 +56,8 @@ func (c *Client) ChatCompletion(ctx context.Context, messages []Message) (*ChatC
 		return nil, fmt.Errorf("error marshaling request: %w", err)
 	}
 
+	logger.Debug("Full request: " + string(jsonData))
+
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
@@ -113,6 +115,14 @@ func (c *Client) ChatCompletion(ctx context.Context, messages []Message) (*ChatC
 		zap.Int("choices", len(chatResp.Choices)),
 		zap.Int("total_tokens", chatResp.Usage.TotalTokens),
 	)
+
+	// Marshal the response with proper indentation and error handling
+	jsonData, err = json.Marshal(chatResp)
+	if err != nil {
+		logger.Error("Failed to marshal response for debug logging", zap.Error(err))
+	} else {
+		logger.Debug("Full response: " + string(jsonData))
+	}
 
 	return &chatResp, nil
 }
