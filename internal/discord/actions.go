@@ -3,19 +3,26 @@ package discord
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/justmiles/openwebui-discord/internal/logger"
+	"github.com/justmiles/openwebui-discord/internal/prompt"
 	"go.uber.org/zap"
 )
 
-// ActionType represents the type of action to perform
-type ActionType string
+// For convenience, alias the ActionType from prompt package
+type ActionType = prompt.ActionType
 
+// Action constants from prompt package
 const (
-	ActionStatus ActionType = "status"
-	ActionReact  ActionType = "react"
-	// Add more action types as needed
+	ActionStatus    = prompt.ActionStatus
+	ActionReact     = prompt.ActionReact
+	ActionFormat    = prompt.ActionFormat
+	ActionReactions = prompt.ActionReactions
+	ActionDelete    = prompt.ActionDelete
+	ActionPin       = prompt.ActionPin
+	ActionFile      = prompt.ActionFile
 )
 
 // Action represents a parsed action from the LLM response
@@ -75,7 +82,77 @@ func ExecuteActions(s *discordgo.Session, channelID string, messageID string, ac
 				logger.Warn("Failed to add reaction via action", zap.Error(err), zap.String("emoji", action.Parameters), zap.String("channel_id", channelID), zap.String("message_id", messageID))
 			}
 
-			// Add more action types as needed
+		case ActionFormat:
+			// This is handled during message sending in handler.go
+			// The format action is parsed and applied to the message content
+			logger.Debug("Format action detected", zap.String("params", action.Parameters))
+			// No direct action needed here as formatting will be applied when sending the message
+
+		case ActionReactions:
+			// Add multiple reactions in sequence
+			emojis := strings.Split(action.Parameters, "|")
+			for _, emoji := range emojis {
+				emoji = strings.TrimSpace(emoji)
+				if emoji == "" {
+					continue
+				}
+				
+				err := s.MessageReactionAdd(channelID, messageID, emoji)
+				if err != nil {
+					logger.Warn("Failed to add reaction in sequence", zap.Error(err), zap.String("emoji", emoji))
+				}
+				// Small delay between reactions to avoid rate limiting
+				time.Sleep(300 * time.Millisecond)
+			}
+
+		case ActionDelete:
+			// Delete the bot's previous message
+			// We need to find the bot's previous message
+			if action.Parameters == "previous" {
+				messages, err := s.ChannelMessages(channelID, 10, "", "", "")
+				if err != nil {
+					logger.Warn("Failed to fetch messages for delete action", zap.Error(err))
+					break
+				}
+				
+				// Find the most recent message from the bot
+				for _, msg := range messages {
+					if msg.Author.ID == s.State.User.ID && msg.ID != messageID {
+						err := s.ChannelMessageDelete(channelID, msg.ID)
+						if err != nil {
+							logger.Warn("Failed to delete previous message", zap.Error(err), zap.String("message_id", msg.ID))
+						} else {
+							logger.Info("Deleted previous message", zap.String("message_id", msg.ID))
+						}
+						break
+					}
+				}
+			}
+
+		case ActionPin:
+			// Pin the message that will be sent
+			// We'll need to handle this after the message is sent
+			// Store the action for processing after message is sent
+			logger.Debug("Pin action detected, will be processed after message is sent", zap.String("params", action.Parameters))
+			// This will be handled in handler.go after sending the message
+
+		case ActionFile:
+			// Generate and upload a file
+			parts := strings.SplitN(action.Parameters, "|", 2)
+			if len(parts) != 2 {
+				logger.Warn("Invalid file action format", zap.String("params", action.Parameters))
+				break
+			}
+			
+			filename := strings.TrimSpace(parts[0])
+			content := parts[1]
+			
+			reader := strings.NewReader(content)
+			_, err := s.ChannelFileSend(channelID, filename, reader)
+			if err != nil {
+				logger.Warn("Failed to upload file", zap.Error(err), zap.String("filename", filename))
+			}
+			
 		default:
 			logger.Warn("Unknown action type received", zap.String("type", string(action.Type)))
 		}

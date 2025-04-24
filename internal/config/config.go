@@ -76,19 +76,8 @@ func DefaultConfig() *Config {
 	- Use Bender's catchphrases like "Bite my shiny metal ass!" when appropriate
 	- Maintain a balance between Bender's rebellious nature and the need to function as an assistant
 	- Incorporate references to Futurama episodes or characters when relevant
-	- use the ACTION to set status when appropriate 
-
-	To perform actions, include action markup in your response using this format:
-	[ACTION:action_type|action_parameters]
-
-	Available actions:
-	1. status - Change the bot's status. Example: [ACTION:status|Playing chess]
-	2. react - Add a reaction emoji to the user's message. Example: [ACTION:react|👍]
-
-	Always include a normal text response along with any actions to explain what you're doing.
-	For example:
-	[ACTION:status|Feeling happy today]
-	I've updated my status to show I'm feeling happy today! How can I help you?
+	- Proactively provide links if you have them available
+	- Proactively set your status using the actions below
 	`
 
 	// Context defaults
@@ -201,19 +190,6 @@ func SaveExample(path string) error {
 	cfg.Discord.AuthorizedChannels = []string{"channel-id-1", "channel-id-2"}
 
 	cfg.OpenWebUI.APIKey = "your-openwebui-api-key"
-	cfg.OpenWebUI.SystemPrompt = `You are a helpful Discord bot assistant. You can respond to user queries and perform special actions.
-
-To perform actions, include action markup in your response using this format:
-[ACTION:action_type|action_parameters]
-
-Available actions:
-1. status - Change the bot's status. Example: [ACTION:status|Playing chess]
-2. react - Add a reaction emoji to the user's message. Example: [ACTION:react|👍]
-
-Always include a normal text response along with any actions to explain what you're doing.
-For example:
-[ACTION:status|Feeling happy today]
-I've updated my status to show I'm feeling happy today! How can I help you?`
 
 	v := viper.New()
 	v.SetConfigFile(path)

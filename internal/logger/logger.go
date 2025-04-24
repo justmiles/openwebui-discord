@@ -16,25 +16,25 @@ var (
 
 // Init initializes the logger with the provided configuration
 func Init(cfg *config.Config) error {
-	
+
 	// Configure logging level
 	level := zapcore.InfoLevel
 	if err := level.UnmarshalText([]byte(cfg.Logging.Level)); err != nil {
 		return fmt.Errorf("invalid log level: %w", err)
 	}
-	
+
 	// Configure encoder based on format
 	var encoder zapcore.Encoder
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.TimeKey = "timestamp"
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	
+
 	if cfg.Logging.Format == "json" {
 		encoder = zapcore.NewJSONEncoder(encoderConfig)
 	} else {
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
 	}
-	
+
 	// Configure output
 	var output zapcore.WriteSyncer
 	if cfg.Logging.File != "" {
@@ -46,13 +46,13 @@ func Init(cfg *config.Config) error {
 	} else {
 		output = zapcore.AddSync(os.Stdout)
 	}
-	
+
 	// Create core
 	core := zapcore.NewCore(encoder, output, level)
-	
+
 	// Create logger
 	log = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-	
+
 	return nil
 }
 

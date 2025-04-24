@@ -88,13 +88,64 @@ func (h *OpenWebUIHandler) HandleMessage(s *discordgo.Session, m *discordgo.Mess
 	// Add assistant response to context (using the cleaned response)
 	h.contextManager.AddMessage(m.ChannelID, "assistant", cleanResponse, "")
 
+	// Check for format action
+	var formattedResponse string = cleanResponse
+	var shouldPin bool = false
+	
+	for _, action := range actions {
+		if action.Type == ActionFormat {
+			// Parse format action: format|type:language|content
+			parts := strings.SplitN(action.Parameters, "|", 2)
+			if len(parts) >= 2 {
+				formatType := parts[0]
+				formatContent := parts[1]
+				
+				switch formatType {
+				case "code":
+					// Format as code block
+					langParts := strings.SplitN(formatContent, "|", 2)
+					if len(langParts) >= 2 {
+						language := langParts[0]
+						code := langParts[1]
+						formattedResponse = "```" + language + "\n" + code + "\n```"
+					}
+				case "bold":
+					formattedResponse = "**" + formatContent + "**"
+				case "italic":
+					formattedResponse = "*" + formatContent + "*"
+				case "quote":
+					lines := strings.Split(formatContent, "\n")
+					var quotedLines []string
+					for _, line := range lines {
+						quotedLines = append(quotedLines, "> "+line)
+					}
+					formattedResponse = strings.Join(quotedLines, "\n")
+				}
+				
+				logger.Debug("Applied formatting", zap.String("type", formatType))
+			}
+		} else if action.Type == ActionPin {
+			shouldPin = true
+		}
+	}
+	
 	// Send response to Discord
-	_, err = h.discordClient.SendMessage(m.ChannelID, cleanResponse)
+	sentMsg, err := h.discordClient.SendMessage(m.ChannelID, formattedResponse)
 	if err != nil {
 		logger.Error("Failed to send response to Discord",
 			zap.Error(err),
 			zap.String("channel_id", m.ChannelID),
 		)
+	}
+	
+	// Handle pin action if needed
+	if shouldPin && sentMsg != "" {
+		err := s.ChannelMessagePin(m.ChannelID, sentMsg)
+		if err != nil {
+			logger.Warn("Failed to pin message", zap.Error(err), zap.String("message_id", sentMsg))
+		} else {
+			logger.Info("Pinned message", zap.String("message_id", sentMsg))
+		}
 	}
 
 	logger.Info("Sent response to Discord",

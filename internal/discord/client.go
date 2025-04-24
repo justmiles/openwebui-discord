@@ -67,7 +67,7 @@ func (c *Client) Start(ctx context.Context) error {
 	)
 
 	// Set status
-	err := c.session.UpdateGameStatus(0, "Chatting with OpenWebUI")
+	err := c.session.UpdateCustomStatus("Chatting with OpenWebUI")
 	if err != nil {
 		logger.Warn("Failed to update status", zap.Error(err))
 	}
